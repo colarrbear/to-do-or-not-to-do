@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { GetServerSideProps } from "next";
 import { getServerSession } from "next-auth/next";
+import prisma from "@/lib/prisma";
+import authOptions from "@/lib/authOptions";
 import { Row, Col, Alert } from "react-bootstrap";
 import Layout from "@/components/Layout";
 import TodoForm from "@/components/TodoForm";
 import TodoList from "@/components/TodoList";
-import prisma from "@/lib/prisma";
-import { authOptions } from "./api/auth/[...nextauth]";
-import { Status, Todo, TodoWithTags } from "@/types/schema";
+import { Status, TodoWithTags } from "@/types/schema";
 
 interface TodosPageProps {
   initialTodos: TodoWithTags[];

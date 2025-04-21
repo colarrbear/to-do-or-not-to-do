@@ -10,6 +10,7 @@ interface TodoFormProps {
     priority: number;
     dueDate: Date | null;
     tags: string[];
+    photoUrl?: string;
   }) => void;
 }
 
@@ -22,6 +23,8 @@ export default function TodoForm({ onSubmit }: TodoFormProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [newTag, setNewTag] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     // Fetch available tags
@@ -38,6 +41,18 @@ export default function TodoForm({ onSubmit }: TodoFormProps) {
     fetchTags();
   }, []);
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setPhotoFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setPhotoUrl(reader.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setPhotoUrl(null);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -47,6 +62,7 @@ export default function TodoForm({ onSubmit }: TodoFormProps) {
       priority,
       dueDate: dueDate ? new Date(dueDate) : null,
       tags,
+      photoUrl: photoUrl ?? undefined,
     });
 
     // Reset form
@@ -57,6 +73,8 @@ export default function TodoForm({ onSubmit }: TodoFormProps) {
     setDueDate("");
     setTags([]);
     setNewTag("");
+    setPhotoFile(null);
+    setPhotoUrl(null);
   };
 
   const handleAddTag = () => {
@@ -192,6 +210,18 @@ export default function TodoForm({ onSubmit }: TodoFormProps) {
                   ))}
                 </div>
               </div>
+            )}
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Photo</Form.Label>
+            <Form.Control
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+            />
+            {photoUrl && (
+              <img src={photoUrl} alt="Preview" className="img-fluid mt-2" />
             )}
           </Form.Group>
 

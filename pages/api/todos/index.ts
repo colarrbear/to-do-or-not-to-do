@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import prisma from "@/lib/prisma";
-import { authOptions } from "../auth/[...nextauth]";
+import authOptions from "@/lib/authOptions";
 import { Session } from "next-auth";
 
 export default async function handler(
@@ -47,7 +47,7 @@ export default async function handler(
 
     case "POST":
       try {
-        const { title, description, status, priority, dueDate, tags } = req.body;
+        const { title, description, status, priority, dueDate, tags, photoUrl } = req.body;
 
         // Check if user has less than 50 todos
         const todoCount = await prisma.todo.count({
@@ -69,6 +69,7 @@ export default async function handler(
             status: status || "PENDING",
             priority: priority || 1,
             dueDate: dueDate ? new Date(dueDate) : null,
+            photoUrl: photoUrl ?? undefined,
             userId,
           },
         });
@@ -76,16 +77,19 @@ export default async function handler(
         // Add tags if provided
         if (tags && tags.length > 0) {
           for (const tagName of tags) {
-            // Find or create the tag
-            let tag = await prisma.tag.findUnique({
-              where: { name: tagName },
-            });
-
-            if (!tag) {
-              tag = await prisma.tag.create({
-                data: { name: tagName },
+            // Find or create the user-specific tag via composite key
+            let tag = await prisma.tag.findFirst({
+                where: { 
+                  name: tagName,
+                  userId: userId
+                }
               });
-            }
+              
+              if (!tag) {
+                tag = await prisma.tag.create({
+                  data: { name: tagName, userId },
+                });
+              }
 
             // Create the TodoTag relation
             await prisma.todoTag.create({
