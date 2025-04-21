@@ -71,17 +71,15 @@ The application can be easily deployed to Vercel:
 
 ```prisma
 model User {
-  id           Int      @id @default(autoincrement())
   email        String   @unique
-  passwordHash String
   createdAt    DateTime @default(now())
+  passwordHash String
+  id           Int      @id @default(autoincrement())
+  tags         Tag[]
   todos        Todo[]
 }
 
 model Todo {
-  id          Int       @id @default(autoincrement())
-  user        User      @relation(fields: [userId], references: [id])
-  userId      Int
   title       String
   description String?
   status      Status    @default(PENDING)
@@ -90,21 +88,29 @@ model Todo {
   photoUrl    String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
   tags        TodoTag[]
 }
 
 model Tag {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique
+  name      String
   createdAt DateTime  @default(now())
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id])
   todos     TodoTag[]
+
+  @@unique([name, userId], name: "name_userId")
 }
 
 model TodoTag {
-  todo   Todo @relation(fields: [todoId], references: [id])
   todoId Int
-  tag    Tag  @relation(fields: [tagId], references: [id])
   tagId  Int
+  tag    Tag  @relation(fields: [tagId], references: [id])
+  todo   Todo @relation(fields: [todoId], references: [id])
+
   @@id([todoId, tagId])
 }
 
