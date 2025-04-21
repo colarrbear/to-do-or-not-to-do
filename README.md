@@ -67,7 +67,7 @@ Live application: https://to‑do‑or‑not‑to‑do‑one.vercel.app/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/to-do-or-not-to-do.git
+   git clone https://github.com/colarrbear/to-do-or-not-to-do.git
    cd to-do-or-not-to-do
    ```
 2. **Install dependencies**
