@@ -1,0 +1,43 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.todo-priority-1 {
+  border-left: 4px solid #28a745;
+}
+
+.todo-priority-2 {
+  border-left: 4px solid #ffc107;
+}
+
+.todo-priority-3 {
+  border-left: 4px solid #dc3545;
+}
+
+.tag-badge {
+  margin-right: 0.25rem;
+  cursor: pointer;
+}
+
+.todo-card {
+  transition: transform 0.2s;
+  margin-bottom: 1rem;
+}
+
+.todo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+} 
