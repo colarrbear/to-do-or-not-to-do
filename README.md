@@ -1,73 +1,102 @@
-# To-Do-Or-Not-To-Do
+# To‑Do Or Not‑To‑Do
 
-A full-stack Todo application built with Next.js, Next-Auth, and PostgreSQL via Prisma.
+A full‑stack, per‑user Todo application with optional photo 
+attachments, tagging, and user authentication built with Next.js, React, NextAuth, and Prisma. Includes tagging, optional photo attachments, and robust CRUD operations.
+
+Live demo: https://to‑do‑or‑not‑to‑do‑one.vercel.app/
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Demo](#demo)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Database Schema](#database-schema)
+- [Project Structure](#project-structure)
+- [Deployment](#deployment)
+- [License](#license)
+
+---
 
 ## Features
 
-- User authentication with email/password
-- Create, read, update, and delete todos
-- Filter todos by status, priority, or search term
-- Tag system for organizing todos
-- Responsive design using Bootstrap
+1. **User Authentication**  
+   - Sign‑Up & Login pages with email/password (NextAuth.js + CredentialsProvider + bcrypt).  
+   - JWT sessions protect both pages and API routes.
+2. **Todo CRUD**  
+   - **Create**: Title, description, status (`PENDING`│`IN_PROGRESS`│`DONE`), priority (1–3), due date, tags, optional photo upload.  
+   - **Read**: List, filter, sort, and search todos; SSR on initial load & client‑side refresh.  
+   - **Update**: Inline editing of any field; atomic tag updates and photo changes.  
+   - **Delete**: Remove todos and clean up tag relations.  
+   - Enforced maximum of **50 todos** per user.
+3. **Tagging**  
+   - Create and reuse free‑form tags per user with composite unique key (`name + userId`).  
+   - Filter todos by a single tag.
+4. **Photo Attachments (Optional)**  
+   - Base64‑encode images in the browser and store in `photoUrl`.  
+   - Render thumbnail previews (max width: 100px).
 
-## Technology Stack
+---
 
-- **Frontend & Backend**: Next.js (React + API routes)
-- **Authentication**: next-auth with Credentials Provider
-- **Database**: PostgreSQL with Prisma ORM
-- **Styling**: Bootstrap via react-bootstrap
+## Tech Stack
+
+- **Framework**: Next.js (Pages Router & TypeScript)  
+- **UI Library**: React 18 + React‑Bootstrap  
+- **Authentication**: NextAuth.js (JWT strategy)  
+- **ORM & Database**: Prisma v5 + PostgreSQL
+
+---
+
+## Demo
+
+Live application: https://to‑do‑or‑not‑to‑do‑one.vercel.app/
+
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (version 16 or higher)
+- Node.js v16 or higher  
 - PostgreSQL database
-- Git
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository**
    ```bash
    git clone https://github.com/colarrbear/to-do-or-not-to-do.git
    cd to-do-or-not-to-do
    ```
-
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
    npm install
    ```
-
-3. Set up environment variables:
-   Create a `.env` file in the root directory with the following variables:
-   ```
-   DATABASE_URL="your-postgresql-connection-string"
+3. **Set environment variables**
+   Copy `.env.example` to `.env` and fill in values:
+   ```env
+   DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
+   NEXTAUTH_SECRET="your-very-secure-secret"
    NEXTAUTH_URL="http://localhost:3000"
-   NEXTAUTH_SECRET="your-random-secret-key"
    ```
-
-4. Set up the database:
+4. **Database setup**
    ```bash
    npx prisma migrate dev --name init
-   npx prisma generate
    ```
 
-5. Run the development server:
+5. **Start the development server**
    ```bash
    npm run dev
    ```
+   Open http://localhost:3000 in your browser.
 
-6. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Deployment
-
-The application can be easily deployed to Vercel:
-
-1. Create a Vercel account and connect your GitHub repository
-2. Set up the same environment variables in the Vercel dashboard
-3. Deploy the application
+---
 
 ## Database Schema
+
+See `prisma/schema.prisma` for full details. Key models:
 
 ```prisma
 model User {
@@ -114,13 +143,49 @@ model TodoTag {
   @@id([todoId, tagId])
 }
 
-enum Status {
-  PENDING
-  IN_PROGRESS
-  DONE
-}
+enum Status { PENDING IN_PROGRESS DONE }
 ```
+
+---
+
+## Project Structure
+
+```
+.
+├─ pages/
+│  ├─ index.tsx
+│  ├─ login.tsx
+│  ├─ signup.tsx
+│  ├─ todos.tsx
+│  └─ api/
+│     ├─ auth/[...nextauth].ts
+│     ├─ todos/index.ts
+│     ├─ todos/[id].ts
+│     ├─ tags/index.ts
+│     └─ tags/[id].ts
+├─ prisma/
+│  └─ schema.prisma
+├─ src/
+│  ├─ components/
+│  │  ├─ TodoForm.tsx
+│  │  ├─ TodoList.tsx
+│  │  └─ TodoItem.tsx
+│  └─ lib/
+│     ├─ authOptions.ts
+│     └─ prisma.ts
+├─ .env.example
+├─ README.md
+└─ package.json
+```
+
+---
+
+## Deployment
+
+The app is deployed on Vercel. It automatically runs with environment variables set in the Vercel dashboard.
+
+---
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.

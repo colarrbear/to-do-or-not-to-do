@@ -14,14 +14,14 @@ export default async function handler(
     return res.status(401).json({ error: "Unauthorized" });
   }
 
+  const userId = parseInt(session.user.id);
   switch (req.method) {
     case "GET":
       try {
-        // Get all tags
+        // Get all tags for this user
         const tags = await prisma.tag.findMany({
-          orderBy: {
-            name: "asc",
-          },
+          where: { userId },
+          orderBy: { name: "asc" },
         });
 
         return res.status(200).json(tags);
@@ -38,18 +38,18 @@ export default async function handler(
           return res.status(400).json({ error: "Tag name is required" });
         }
 
-        // Check if tag already exists
+        // Check if tag already exists for this user
         const existingTag = await prisma.tag.findUnique({
-          where: { name },
+          where: { name_userId: { name, userId } },
         });
 
         if (existingTag) {
           return res.status(409).json({ error: "Tag already exists" });
         }
 
-        // Create new tag
+        // Create new tag for this user
         const tag = await prisma.tag.create({
-          data: { name },
+          data: { name, userId },
         });
 
         return res.status(201).json(tag);

@@ -14,6 +14,8 @@ export default function TodoList({ initialTodos }: TodoListProps) {
   const [priorityFilter, setPriorityFilter] = useState<string>("ALL");
   const [sortBy, setSortBy] = useState<string>("DATE");
   const [searchQuery, setSearchQuery] = useState("");
+  const [tagFilter, setTagFilter] = useState<string>("ALL");
+  const allTags = Array.from(new Set(todos.flatMap(todo => todo.tags.map(t => t.tag.name))));
   const [error, setError] = useState("");
   const [isMounted, setIsMounted] = useState(false);
 
@@ -54,6 +56,13 @@ export default function TodoList({ initialTodos }: TodoListProps) {
       );
     }
 
+    // Filter by selected tag
+    if (tagFilter !== "ALL") {
+      filtered = filtered.filter((todo) =>
+        todo.tags.some((t) => t.tag.name === tagFilter)
+      );
+    }
+
     // Sort todos
     filtered.sort((a, b) => {
       if (sortBy === "PRIORITY_HIGH") {
@@ -72,7 +81,7 @@ export default function TodoList({ initialTodos }: TodoListProps) {
     });
 
     setFilteredTodos(filtered);
-  }, [todos, statusFilter, priorityFilter, searchQuery, sortBy]);
+  }, [todos, statusFilter, priorityFilter, searchQuery, sortBy, tagFilter]);
 
   const handleDelete = async (id: number) => {
     try {
@@ -177,6 +186,19 @@ export default function TodoList({ initialTodos }: TodoListProps) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+            </Form.Group>
+          </Col>
+        </Row>
+        <Row className="mb-3">
+          <Col md={3}>
+            <Form.Group className="mb-3">
+              <Form.Label>Filter by Tag</Form.Label>
+              <Form.Select value={tagFilter} onChange={(e) => setTagFilter(e.target.value)}>
+                <option value="ALL">All Tags</option>
+                {allTags.map((tag) => (
+                  <option key={tag} value={tag}>{tag}</option>
+                ))}
+              </Form.Select>
             </Form.Group>
           </Col>
         </Row>
