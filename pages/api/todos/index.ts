@@ -79,17 +79,17 @@ export default async function handler(
           for (const tagName of tags) {
             // Find or create the user-specific tag via composite key
             let tag = await prisma.tag.findFirst({
-                where: { 
-                  name: tagName,
-                  userId: userId
-                }
+              where: {
+                name: tagName,
+                userId:userId,
+              },
+            });
+            
+            if (!tag) {
+              tag = await prisma.tag.create({
+                data: { name: tagName, userId },
               });
-              
-              if (!tag) {
-                tag = await prisma.tag.create({
-                  data: { name: tagName, userId },
-                });
-              }
+            }
 
             // Create the TodoTag relation
             await prisma.todoTag.create({

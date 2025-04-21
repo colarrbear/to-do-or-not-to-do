@@ -71,6 +71,15 @@ export default function TodoItem({ todo, onDelete, onUpdate }: TodoItemProps) {
   return (
     <Card className={`todo-card ${getPriorityClass(todo.priority)}`}>
       <Card.Body>
+        {!isEditing && todo.photoUrl && (
+          <Card.Img
+            variant="top"
+            src={todo.photoUrl}
+            alt="Attached photo"
+            style={{ maxWidth: '100px', objectFit: 'cover' }}
+            className="mb-3"
+          />
+        )}
         {isEditing ? (
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
