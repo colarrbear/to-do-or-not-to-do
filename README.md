@@ -1,54 +1,58 @@
-# To‑Do Or Not‑To‑Do  
+# To‑Do Or Not‑To‑Do
 
-A full‑stack, per‑user Todo application with optional photo attachments, tagging, and user authentication.  
-Live demo: https://to‑do‑or‑not‑to‑do‑one.vercel.app/
+A full‑stack, per‑user Todo application with optional photo 
+attachments, tagging, and user authentication built with Next.js, React, NextAuth, and Prisma. Includes tagging, optional photo attachments, and robust CRUD operations.
+
+Live demo: https://to‑do‑or‑not‑to‑do‑one.vercel.app/
 
 ---
 
 ## Table of Contents
 
-1. [Features](#features)  
-2. [Tech Stack](#tech-stack)  
-3. [Getting Started](#getting-started)  
-4. [Database Schema](#database-schema)  
-5. [Code & Architecture](#code--architecture)  
-6. [Deployment](#deployment)  
-7. [Design Decisions & Trade‑Offs](#design-decisions--trade‑offs)
-9. [License](#license)  
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Demo](#demo)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Database Schema](#database-schema)
+- [Project Structure](#project-structure)
+- [Deployment](#deployment)
+- [License](#license)
 
 ---
 
 ## Features
 
-- **User Authentication**  
-  - Sign up & log in with email/password (NextAuth.js + CredentialsProvider + bcrypt).  
-  - Session stored in HTTP‑only JWT cookie, extended to include `session.user.id`.  
-  - Protected `/todos` pages & all API routes.
-
-- **Todo Management (CRUD)**  
-  - **Create**: title, description, status (`PENDING`│`IN_PROGRESS`│`DONE`), priority (1–3), due date, optional photo.  
-  - **Read**: list all your todos with tags & thumbnails; server‑rendered on initial load, client‑refresh via “↻ Refresh.”  
-  - **Update**: inline edit any field; tags are rewritten atomically.  
-  - **Delete**: removes a todo and its tag relations.  
-  - Limit of **50 todos** per user.
-
-- **Tagging**  
-  - Create and reuse free‑form tags scoped per user.  
-  - Attach multiple tags to each todo via a join table.
-
-- **Photo Attachments**  
-  - File input in form → Base64 string stored in `todo.photoUrl`.  
-  - Thumbnail (100 px wide) shown in todo list.
+1. **User Authentication**  
+   - Sign‑Up & Login pages with email/password (NextAuth.js + CredentialsProvider + bcrypt).  
+   - JWT sessions protect both pages and API routes.
+2. **Todo CRUD**  
+   - **Create**: Title, description, status (`PENDING`│`IN_PROGRESS`│`DONE`), priority (1–3), due date, tags, optional photo upload.  
+   - **Read**: List, filter, sort, and search todos; SSR on initial load & client‑side refresh.  
+   - **Update**: Inline editing of any field; atomic tag updates and photo changes.  
+   - **Delete**: Remove todos and clean up tag relations.  
+   - Enforced maximum of **50 todos** per user.
+3. **Tagging**  
+   - Create and reuse free‑form tags per user with composite unique key (`name + userId`).  
+   - Filter todos by a single tag.
+4. **Photo Attachments (Optional)**  
+   - Base64‑encode images in the browser and store in `photoUrl`.  
+   - Render thumbnail previews (max width: 100px).
 
 ---
 
 ## Tech Stack
 
-- **Next.js** (Pages Router + TypeScript)  
-- **React 18**  
-- **NextAuth.js** for auth  
-- **Prisma v5** ORM + PostgreSQL  
-- **React‑Bootstrap** for styling & layout  
+- **Framework**: Next.js (Pages Router & TypeScript)  
+- **UI Library**: React 18 + React‑Bootstrap  
+- **Authentication**: NextAuth.js (JWT strategy)  
+- **ORM & Database**: Prisma v5 + PostgreSQL
+
+---
+
+## Demo
+
+Live application: https://to‑do‑or‑not‑to‑do‑one.vercel.app/
 
 ---
 
@@ -56,202 +60,120 @@ Live demo: https://to‑do‑or‑not‑to‑do‑one.vercel.app/
 
 ### Prerequisites
 
-- Node.js v16+  
-- PostgreSQL instance  
-- Git  
+- Node.js v16 or higher  
+- PostgreSQL database
 
 ### Installation
 
-1. **Clone the repo**  
+1. **Clone the repository**
    ```bash
-   git clone https://github.com/your‑username/to‑do‑or‑not‑to‑do.git
-   cd to‑do‑or‑not‑to‑do
+   git clone https://github.com/your-username/to-do-or-not-to-do.git
+   cd to-do-or-not-to-do
    ```
-
-2. **Install dependencies**  
+2. **Install dependencies**
    ```bash
    npm install
    ```
-
-3. **Environment variables**  
-   Copy `.env.example` → `.env.local` and set:
-   ```
-   DATABASE_URL="postgresql://user:password@host:port/dbname"
+3. **Set environment variables**
+   Copy `.env.example` to `.env.local` and fill in values:
+   ```env
+   DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
+   NEXTAUTH_SECRET="your-very-secure-secret"
    NEXTAUTH_URL="http://localhost:3000"
-   NEXTAUTH_SECRET="a‑very‑secure‑random‑string"
    ```
-
-4. **Migrate & generate Prisma client**  
+4. **Database setup**
    ```bash
    npx prisma migrate dev --name init
-   npx prisma generate
    ```
 
-5. **Run the app**  
+5. **Start the development server**
    ```bash
    npm run dev
    ```
-   Open http://localhost:3000
+   Open http://localhost:3000 in your browser.
 
 ---
 
 ## Database Schema
 
+See `prisma/schema.prisma` for full details. Key models:
+
 ```prisma
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 model User {
-  email        String   @unique
-  createdAt    DateTime @default(now())
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
   passwordHash String
-  id           Int      @id @default(autoincrement())
   tags         Tag[]
   todos        Todo[]
 }
 
 model Todo {
-  title       String
-  description String?
-  status      Status    @default(PENDING)
-  priority    Int       @default(1)
-  dueDate     DateTime?
-  photoUrl    String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  id          Int       @id @default(autoincrement())
-  userId      Int
-  user        User      @relation(fields: [userId], references: [id])
-  tags        TodoTag[]
+  id        Int       @id @default(autoincrement())
+  title     String
+  status    Status    @default(PENDING)
+  priority  Int       @default(1)
+  dueDate   DateTime?
+  photoUrl  String?
+  userId    Int
+  tags      TodoTag[]
 }
 
 model Tag {
-  name      String
-  createdAt DateTime  @default(now())
   id        Int       @id @default(autoincrement())
+  name      String
   userId    Int
-  user      User      @relation(fields: [userId], references: [id])
   todos     TodoTag[]
-
-  @@unique([name, userId], name: "name_userId")
+  @@unique([name, userId])
 }
 
 model TodoTag {
   todoId Int
   tagId  Int
-  tag    Tag  @relation(fields: [tagId], references: [id])
-  todo   Todo @relation(fields: [todoId], references: [id])
-
   @@id([todoId, tagId])
 }
-
-enum Status {
-  PENDING
-  IN_PROGRESS
-  DONE
-}
-
+enum Status { PENDING IN_PROGRESS DONE }
 ```
 
 ---
 
-## Code & Architecture
+## Project Structure
 
-```TO-DO-OR-NOT-TO-DO
-|_ .next/
-|_ node_modules/
-|_ pages/
-|_ prisma/
-|  |_ migrations/
-|  |_ schema.prisma
-|_ public/
-|_ src/
-|  |_ app/
-|  |_ components/
-|  |_ lib/
-|  |  |_ auth.ts
-|  |  |_ authOptions.ts
-|  |  |_ prisma.ts
-|  |_ styles/
-|  |_ types/
-|  |_ middleware.ts
-|_ types/
-|_ .env
-|_ .env.example
-|_ .gitignore
-|_ eslint.config.mjs
-|_ LICENSE
-|_ next-env.d.ts
-|_ next.config.ts
-|_ package-lock.json
-|_ package.json
-|_ postcss.config.mjs
-|_ README.md
-|_ tsconfig.json
 ```
-
-### `src/lib/prisma.ts`  
-Exports a singleton `PrismaClient` to avoid multiple instances in development.
-
-### `src/lib/authOptions.ts`  
-Central NextAuth config:
-- CredentialsProvider + bcrypt authorize  
-- JWT & session callbacks to store `user.id`  
-- Type augmentation for `Session` & `JWT`
-
-### API Routes (`pages/api/...`)  
-- Each handler starts with:
-  ```ts
-  const session = await getServerSession(req, res, authOptions);
-  if (!session?.user?.id) return res.status(401).json({ error: "Unauthorized" });
-  const userId = parseInt(session.user.id);
-  ```
-- **`/api/todos`**: GET, POST (with 50‑todo limit), PUT, DELETE  
-- **`/api/tags`**: GET, POST (user‑scoped tags)
-
-### Pages
-
-- **`/pages/login.tsx` & `/pages/signup.tsx`**: auth forms  
-- **`/pages/todos.tsx`**:  
-  - `getServerSideProps` for auth guard + initial todos fetch  
-  - Client uses `useState` + “Refresh” to re‑fetch  
-
-### Components
-
-- **`TodoForm`**: controlled inputs, tag selector, photo preview  
-- **`TodoList`** & **`TodoItem`**: list UI, inline edits, badges, delete button  
+.
+├─ pages/
+│  ├─ index.tsx
+│  ├─ login.tsx
+│  ├─ signup.tsx
+│  ├─ todos.tsx
+│  └─ api/
+│     ├─ auth/[...nextauth].ts
+│     ├─ todos/index.ts
+│     ├─ todos/[id].ts
+│     ├─ tags/index.ts
+│     └─ tags/[id].ts
+├─ prisma/
+│  └─ schema.prisma
+├─ src/
+│  ├─ components/
+│  │  ├─ TodoForm.tsx
+│  │  ├─ TodoList.tsx
+│  │  └─ TodoItem.tsx
+│  └─ lib/
+│     ├─ authOptions.ts
+│     └─ prisma.ts
+├─ .env.example
+├─ README.md
+└─ package.json
+```
 
 ---
 
 ## Deployment
 
-This app is live on Vercel:  
-https://to‑do‑or‑not‑to‑do‑one.vercel.app/
-
-**Deploying your own copy:**
-
-1. Push to GitHub.  
-2. On Vercel, import the repo.  
-3. Add the same environment variables in Vercel dashboard.  
-4. Deploy.
-
----
-
-## Design Decisions & Trade‑Offs
-
-- **SSR + Client Fetch**: SSR for auth + SEO; client fetch for dynamic updates.  
-- **Base64 Photo Storage**: simplifies hosting, but increases payload sizes.  
-- **Composite Unique Constraint** on `(name, userId)` enforces per‑user tag isolation.  
-- **React‑Bootstrap** enables rapid, responsive UI without custom CSS.
+The app is deployed on Vercel. It automatically runs with environment variables set in the Vercel dashboard.
 
 ---
 
 ## License
 
-MIT © Your Name / Organization
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
