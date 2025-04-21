@@ -75,7 +75,7 @@ Live application: https://to‑do‑or‑not‑to‑do‑one.vercel.app/
    npm install
    ```
 3. **Set environment variables**
-   Copy `.env.example` to `.env.local` and fill in values:
+   Copy `.env.example` to `.env` and fill in values:
    ```env
    DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
    NEXTAUTH_SECRET="your-very-secure-secret"
@@ -100,37 +100,49 @@ See `prisma/schema.prisma` for full details. Key models:
 
 ```prisma
 model User {
-  id           Int       @id @default(autoincrement())
-  email        String    @unique
+  email        String   @unique
+  createdAt    DateTime @default(now())
   passwordHash String
+  id           Int      @id @default(autoincrement())
   tags         Tag[]
   todos        Todo[]
 }
 
 model Todo {
-  id        Int       @id @default(autoincrement())
-  title     String
-  status    Status    @default(PENDING)
-  priority  Int       @default(1)
-  dueDate   DateTime?
-  photoUrl  String?
-  userId    Int
-  tags      TodoTag[]
+  title       String
+  description String?
+  status      Status    @default(PENDING)
+  priority    Int       @default(1)
+  dueDate     DateTime?
+  photoUrl    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  user        User      @relation(fields: [userId], references: [id])
+  tags        TodoTag[]
 }
 
 model Tag {
-  id        Int       @id @default(autoincrement())
   name      String
+  createdAt DateTime  @default(now())
+  id        Int       @id @default(autoincrement())
   userId    Int
+  user      User      @relation(fields: [userId], references: [id])
   todos     TodoTag[]
-  @@unique([name, userId])
+
+  @@unique([name, userId], name: "name_userId")
 }
 
 model TodoTag {
   todoId Int
   tagId  Int
+  tag    Tag  @relation(fields: [tagId], references: [id])
+  todo   Todo @relation(fields: [todoId], references: [id])
+
   @@id([todoId, tagId])
 }
+
 enum Status { PENDING IN_PROGRESS DONE }
 ```
 
